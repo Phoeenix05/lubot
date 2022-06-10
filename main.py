@@ -1,27 +1,32 @@
-import os, dotenv, discord
-from discord.ext import commands
+import os, dotenv, nextcord
+from nextcord import Interaction
+from nextcord.ext import commands
 
-# Setup
-os.system('clear')   # Clear terminal window
-dotenv.load_dotenv() # Load .env
+intents = nextcord.Intents.default()
+intents.members = True
 
-TOKEN = os.getenv('TOKEN') # Get token from enviroment variables
-client = commands.Bot(command_prefix=('/', '!'))  # Create discord bot client
+client = commands.Bot(command_prefix='/', intents=intents)
+
 
 @client.event
 async def on_ready():
-  # get_channel() # Get general channel
-  # await channel.send('Lubot connected!')
-  print(f'[Connected] {client.user}')
+  print(f'[Connected] {client.user} (id: {client.user.id})')
+  await client.get_channel(984803238211637318).send('Lubot is back!')
 
-@client.command()
-async def ping(ctx: commands.Context):
-  if (ctx.prefix != '!'): return
-  await ctx.reply('pong', mention_author=False)
+@client.slash_command('ping')
+async def ping(interaction: Interaction):
+  await interaction.response.send_message('pong')
 
-@client.command()
-async def stop(ctx: commands.Context):
-  await ctx.send(f'Shutting down {client.user.name}')
+@client.slash_command('stop', 'Stops Lubot')
+async def stop(interaction: Interaction):
+  await interaction.response.send_message('Lubot stopped!')
   await client.close()
 
-client.run(TOKEN) # Run bot
+
+# Setup
+if __name__ == '__main__':
+  os.system('clear')   # Clear terminal window
+  dotenv.load_dotenv() # Load .env
+  
+  TOKEN = os.getenv('TOKEN') # Get token from enviroment variables
+  client.run(TOKEN)

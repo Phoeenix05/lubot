@@ -1,0 +1,5 @@
+#!/bin/zsh
+
+cd /Users/antonfredriksson/Github/lubot
+source ./vm/bin/activate
+python3 main.py

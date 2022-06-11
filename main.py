@@ -1,55 +1,28 @@
-import os, sys
-from datetime import datetime
-
-import dotenv, nextcord
-from nextcord import Interaction
+import os, dotenv, nextcord
 from nextcord.ext import commands
-from rich import print
+from util import log
+
+# Load dotnev
+dotenv.load_dotenv()
 
 intents = nextcord.Intents.default()
 intents.members = True
 
 client = commands.Bot(command_prefix='/', intents=intents)
 
-
-def time() -> str: return datetime.now().strftime('%H:%M:%S')
-def log(s: str) -> None: print(f'[{time()}] {s}')
-
 @client.event
 async def on_ready():
   log(f'[Connected] {client.user} (id: {client.user.id})')
   await client.get_channel(984803238211637318).send('Lubot is back!')
 
-@client.slash_command('ping', 'Lubot latency info')
-async def ping(interaction: Interaction):
-  # Create embeded message
-  embed = nextcord.Embed()
-  embed.color = nextcord.Color.from_rgb(150, 255, 0) # Set message color
-  # Add fields to message
-  embed.add_field(
-    name =  'Latency',
-    value = f'Ping {client.latency * 1000:.0f} ms'
-  )
-  await interaction.response.send_message(embed=embed)
+initial_extensions = []
 
-@client.slash_command('stop', 'Stops Lubot')
-async def stop(interaction: Interaction):
-  log(f'Lubot stopped by {interaction.user}')
-  await interaction.response.send_message('Lubot stopped!')
-  # Close bot client
-  await client.close()
+for file in os.listdir('./cogs'):
+  if file.endswith('.py'):
+    initial_extensions.append(f'cogs.{file[:-3]}')
 
-@client.slash_command('restart', 'Restart Lubot')
-async def restart(interaction: Interaction):
-  await interaction.response.send_message('Restarting!')
-  log('Restarting')
-  # Restart the program by replacing the process
-  os.execv(sys.executable, ['python3'] + sys.argv)
-
-
-# Setup
 if __name__ == '__main__':
-  dotenv.load_dotenv() # Load .env
+  for extension in initial_extensions:
+    client.load_extension(extension)
 
-  TOKEN = os.getenv('TOKEN') # Get token from enviroment variables
-  client.run(TOKEN)
+  client.run(os.getenv('TOKEN'))
